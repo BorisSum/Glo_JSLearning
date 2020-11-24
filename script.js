@@ -23,39 +23,36 @@ let budgetDay = +(money / 30).toFixed(2);
 console.log(budgetDay);
 
 // ------------------- УРОК 3 ----------------------------------
-money = NaN;
-let Amount1 = NaN;
-let Amount2 = NaN;
+// Не забывай называть переменные в camelCase, у тебя появились Expanses1 и Expanses2, Amount1 и Amount2.
 
-while (isNaN(money)) {
-   money = parseFloat(prompt('Ваш месячный доход, руб.'));
-}
+// Бюджет на месяц это месячный доход (money) минус сумма обязательных расходов, 
+// при его объявлении сразу же можно посчитать, а потом уже использовать в переменной "monthToMission".
+// Бюджет на день соответственно тоже надо пересчитать: 
+// "Поправить budgetDay учитывая бюджет на месяц, а не месячный доход"
 
+
+money = parseFloat(prompt('Ваш месячный доход, руб.'));
 console.log('Месячный доход: ', money);
 
 addExpenses = prompt('Перечислите возможные расходы за рассчитываемый период через запятую');
 
 deposit = confirm('Есть ли у Вас депозит в банке?');
 
-const Expanses1 = prompt('Введите обязательную статью расходов');
-while (isNaN(Amount1)) {
-   Amount1 = parseFloat(prompt('Во сколько это обойдется, руб.'));
-}
+const expanses1 = prompt('Введите обязательную статью расходов');
+const amount1 = parseFloat(prompt('Во сколько это обойдется, руб.'));
 
-const Expanses2 = prompt('Введите обязательную статью расходов');
-while (isNaN(Amount2)) {
-   Amount2 = parseFloat(prompt('Во сколько это обойдется, руб.'));
-}
+const expanses2 = prompt('Введите обязательную статью расходов');
+const amount2 = parseFloat(prompt('Во сколько это обойдется, руб.'));
 
 // Если я правильно понял, месячный бюджет это сумма обязательных расходов,
 // остальное в накопление.
-const budgetMonth = Amount1 + Amount2;
+const budgetMonth = amount1 + amount2;
 console.log('Бюджет на месяц: ', budgetMonth);
 
 const monthToMission = Math.ceil(mission / (money - budgetMonth));
 console.log(`До наколения ${mission} осталось ${monthToMission} мес.`);
 
-budgetDay = Math.floor(money / 30);
+budgetDay = Math.floor(budgetMonth / 30);
 console.log('Бюджет на день: ', budgetDay);
 
 if (budgetDay >= 1200) {
