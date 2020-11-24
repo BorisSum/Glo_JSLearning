@@ -46,10 +46,10 @@ const amount2 = parseFloat(prompt('Во сколько это обойдется
 
 // Если я правильно понял, месячный бюджет это сумма обязательных расходов,
 // остальное в накопление.
-const budgetMonth = amount1 + amount2;
+const budgetMonth = money - amount1 - amount2;
 console.log('Бюджет на месяц: ', budgetMonth);
 
-const monthToMission = Math.ceil(mission / (money - budgetMonth));
+const monthToMission = Math.ceil(mission / budgetMonth);
 console.log(`До наколения ${mission} осталось ${monthToMission} мес.`);
 
 budgetDay = Math.floor(budgetMonth / 30);
