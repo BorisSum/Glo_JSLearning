@@ -14,6 +14,14 @@ const promptForNumber = question => {
    return parseFloat(result);
 };
 
+const promptForTextValue = question => {
+   let result = null;
+   do {
+      result = prompt(question);
+   } while (!result);
+   return result;
+};
+
 const appData = {
    // Какие-то свойства объекта, возможно на будущее
    income: {},
@@ -38,13 +46,13 @@ const appData = {
    // Получем от пользователя данные и инициализируем объект.
    asking: function () {
       this.deposit = confirm('Есть ли у Вас депозит в банке?');
-      this.addExpenses = prompt(
+      this.addExpenses = promptForTextValue(
          'Перечислите возможные расходы за рассчитываемый период через запятую').toLowerCase().split(', ');
 
       // Заполняем объект expenses
       let expName;
       for (let i = 0; i < 2; i++) {
-         expName = prompt('Введите обязательную статью расходов №-' + (i + 1)).toLowerCase();
+         expName = promptForTextValue('Введите обязательную статью расходов №-' + (i + 1)).toLowerCase();
          appData.expenses[expName] = promptForNumber('Во сколько это обойдется, руб.');
       }
 
@@ -98,7 +106,7 @@ const appData = {
 
 const start = function () {
    do {
-      appData.budget = +prompt('Ваш месячный доход, руб.');
+      appData.budget = parseFloat(prompt('Ваш месячный доход, руб.'));
    } while (!isNumber(appData.budget));
 };
 
