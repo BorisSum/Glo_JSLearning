@@ -133,6 +133,11 @@ const appData = {
       }
    },
 
+   // Расчет суммы, которая будет накоплена за период
+   calcSaveMoney: function () {
+      return parseFloat(this.budgetMonth * this.period);
+   },
+
 };
 
 const start = function () {
