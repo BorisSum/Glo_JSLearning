@@ -31,4 +31,6 @@ paragraphs5[7].after(paragraphs5[5]);
 
 // добавляем главу 8 в книге 6
 const paragraphs6 = books[2].querySelectorAll('li');
-paragraphs6[8].after(paragraphs6[8].cloneNode(true).textContent = 'Глава 8: За пределами ES6');
+const par8 = document.createElement('li');
+par8.textContent = 'Глава 8: За пределами ES6';
+paragraphs6[8].after(par8);
