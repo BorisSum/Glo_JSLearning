@@ -225,6 +225,7 @@ const appData = {
    // метод, возвращающий this.expensesMonth. А это сумма обязательных платежей.
    getExpensesMonth: function () {
       for (let property in this.expenses) {
+
          this.expensesMonth += this.expenses[property];
       }
       return this.expensesMonth;
@@ -307,6 +308,7 @@ const start = function () {
 
    this.getExpenses(); // Получаем все обязательные расходы в this.expenses{}
    // в формате "Наименование: сумма". Сумма - в виде числа.
+   console.log(this.expenses);
 
    this.getExpensesMonth(); // Суммируем обязательные расходы из expenses{}
    // и присваиваем эту сумму в expensesMonth
@@ -398,7 +400,7 @@ const resetCalc = function () {
    this.budget = 0;
    this.budgetDay = 0;
    this.budgetMonth = 0;
-   this.expensesMont = 0;
+   this.expensesMonth = 0;
    this.incomeStatus = '';
 
    // Возвращаем на место range
