@@ -76,6 +76,26 @@ const incomePeriodValElem = document.getElementsByClassName('income_period-value
 // Срок достижения цели
 const targetMonthValElem = document.getElementsByClassName('target_month-value')[0];
 
+
+const toggleInputsDisable = param => {
+   salaryAmountElem.disabled = param;
+
+   incomeItems.forEach(item => {
+      item.querySelector('.income-title').disabled = param;
+      item.querySelector('.income-amount').disabled = param;
+   });
+   additionalIncomeElems[0].disabled = param;
+   additionalIncomeElems[1].disabled = param;
+
+   expensesItems.forEach(item => {
+      item.querySelector('.expenses-title').disabled = param;
+      item.querySelector('.expenses-amount').disabled = param;
+   });
+
+   additionalExpensesItemElem.disabled = param;
+   targetAmountElem.disabled = param;
+};
+
 // ------------- Главный объект нашего приложения ---------------------------------------
 const appData = {
 
@@ -95,32 +115,44 @@ const appData = {
    expensesMonth: 0, // сумма обязательных платежей в месяц... вроде...
    incomeStatus: '', // Статус дохода (высокий, средний, низкий)
 
-   // start: function () {
+   start: function () {
+      if (salaryAmountElem.value === '') {
+         return;
+      }
 
-   //    this.budget = parseFloat(salaryAmountElem.value);
+      this.budget = parseFloat(salaryAmountElem.value);
 
-   //    this.getExpenses(); // Получаем все обязательные расходы в this.expenses{}
-   //    // в формате "Наименование: сумма". Сумма - в виде числа.
+      this.getExpenses(); // Получаем все обязательные расходы в this.expenses{}
+      // в формате "Наименование: сумма". Сумма - в виде числа.
 
-   //    this.getExpensesMonth(); // Суммируем обязательные расходы из expenses{}
-   //    // и присваиваем эту сумму в expensesMonth
+      this.getExpensesMonth(); // Суммируем обязательные расходы из expenses{}
+      // и присваиваем эту сумму в expensesMonth
 
-   //    this.getIncome(); // Получаем все дополнительные доходы в this.income{}
-   //    // в формате "Наименование: сумма". Сумма - в виде числа.
+      this.getIncome(); // Получаем все дополнительные доходы в this.income{}
+      // в формате "Наименование: сумма". Сумма - в виде числа.
 
-   //    this.getIncomeMonth(); // Суммируем все дополнительные доходы из income{}
-   //    // и присваиваем эту сумму в incomeMonth
+      this.getIncomeMonth(); // Суммируем все дополнительные доходы из income{}
+      // и присваиваем эту сумму в incomeMonth
 
-   //    this.getBudget(); // расчет budgetMonth = budget + incomeMonth - expensesMonth
-   //    // и budgetDay = budgetMonth / 30;
+      this.getBudget(); // расчет budgetMonth = budget + incomeMonth - expensesMonth
+      // и budgetDay = budgetMonth / 30;
 
-   //    // Тут получаем текстовые данные - пока не интересно
-   //    this.getAddExpenses();
-   //    this.getAddIncome();
+      // Тут получаем текстовые данные - пока не интересно
+      this.getAddExpenses();
+      this.getAddIncome();
 
-   //    // Показываем результат.
-   //    this.showResult();
-   // },
+      // Показываем результат.
+      this.showResult();
+
+      // ----- Блокируем все инпуты слева (потом перенести в нормальный start) -------
+      toggleInputsDisable(true);
+
+      // Убираем кнопку Рассчитать
+      btnCalculateElem.style.display = 'none';
+
+      // Показываем кнопку сбросить
+      btnCancelElem.style.display = 'block';
+   },
 
    // Заполняем поля для вывода инфы
    showResult: function () {
@@ -136,6 +168,80 @@ const appData = {
       periodSelectElem.addEventListener('input', () => {
          incomePeriodValElem.value = this.calcPeriod();
       });
+   },
+
+   resetCalc: function () {
+      // Разблокируем все инпуты
+      toggleInputsDisable(false);
+
+      // Очищаем их
+      budgetMonthValElem.value = '';
+      budgetDayValElem.value = '';
+      expensesMonthValElem.value = '';
+      additionalExpensesValElem.value = '';
+      additionalIncomeValElem.value = '';
+      targetMonthValElem.value = '';
+      incomePeriodValElem.value = '';
+
+      salaryAmountElem.value = '';
+
+      incomeItems.forEach(item => {
+         item.querySelector('.income-title').value = '';
+         item.querySelector('.income-amount').value = '';
+      });
+      additionalIncomeElems[0].value = '';
+      additionalIncomeElems[1].value = '';
+
+      expensesItems.forEach(item => {
+         item.querySelector('.expenses-title').value = '';
+         item.querySelector('.expenses-amount').value = '';
+      });
+
+      additionalExpensesItemElem.value = '';
+      targetAmountElem.value = '';
+      depositCheckElem.checked = false;
+
+      // Убираем лишние поля Дополнительных доходов и показываем кнопку "+"
+      incomeItems.forEach((item, index) => {
+         if (index !== 0) {
+            item.remove();
+         }
+      });
+      btnIncomeAddElem.style.display = '';
+
+      // Убираем лишние поля Обязательные расходы и показываем кнопку "+"
+      expensesItems.forEach((item, index) => {
+         if (index !== 0) {
+            item.remove();
+         }
+      });
+      btnExpensesAddElem.style.display = '';
+
+      // Возвращаем appData в исходное состояние
+      this.isIncome = null;
+      this.income = {};
+      this.addIncome = [];
+      this.expenses = {};
+      this.addExpenses = [];
+      this.deposit = false;
+      this.percentDeposit = 0;
+      this.moneyDeposit = 0;
+      this.incomeMonth = 0;
+      this.budget = 0;
+      this.budgetDay = 0;
+      this.budgetMonth = 0;
+      this.expensesMonth = 0;
+      this.incomeStatus = '';
+
+      // Возвращаем на место range
+      periodSelectElem.value = 1;
+      periodAmountTitleElem.textContent = '1';
+
+      // Показываем кнопку Рассчитать
+      btnCalculateElem.style.display = 'block';
+
+      // Убираем кнопку сбросить
+      btnCancelElem.style.display = 'none';
    },
 
    // Получаем из поля "Возможные расходы" кривую строку, разбиваем, обрабатываем
@@ -283,160 +389,12 @@ const appData = {
 
 };
 
-const toggleInputsDisable = param => {
-   salaryAmountElem.disabled = param;
+const startBound = appData.start.bind(appData);
+const resetBound = appData.resetCalc.bind(appData);
 
-   incomeItems.forEach(item => {
-      item.querySelector('.income-title').disabled = param;
-      item.querySelector('.income-amount').disabled = param;
-   });
-   additionalIncomeElems[0].disabled = param;
-   additionalIncomeElems[1].disabled = param;
+btnCalculateElem.addEventListener('click', startBound);
 
-   expensesItems.forEach(item => {
-      item.querySelector('.expenses-title').disabled = param;
-      item.querySelector('.expenses-amount').disabled = param;
-   });
-
-   additionalExpensesItemElem.disabled = param;
-   targetAmountElem.disabled = param;
-};
-
-const start = function () {
-
-   this.budget = parseFloat(salaryAmountElem.value);
-
-   this.getExpenses(); // Получаем все обязательные расходы в this.expenses{}
-   // в формате "Наименование: сумма". Сумма - в виде числа.
-   console.log(this.expenses);
-
-   this.getExpensesMonth(); // Суммируем обязательные расходы из expenses{}
-   // и присваиваем эту сумму в expensesMonth
-
-   this.getIncome(); // Получаем все дополнительные доходы в this.income{}
-   // в формате "Наименование: сумма". Сумма - в виде числа.
-
-   this.getIncomeMonth(); // Суммируем все дополнительные доходы из income{}
-   // и присваиваем эту сумму в incomeMonth
-
-   this.getBudget(); // расчет budgetMonth = budget + incomeMonth - expensesMonth
-   // и budgetDay = budgetMonth / 30;
-
-   // Тут получаем текстовые данные - пока не интересно
-   this.getAddExpenses();
-   this.getAddIncome();
-
-   // Показываем результат.
-   this.showResult();
-
-   // ----- Блокируем все инпуты слева (потом перенести в нормальный start) -------
-   toggleInputsDisable(true);
-
-   // Убираем кнопку Рассчитать
-   btnCalculateElem.style.display = 'none';
-
-   // Показываем кнопку сбросить
-   btnCancelElem.style.display = 'block';
-
-};
-
-const resetCalc = function () {
-   // Разблокируем все инпуты
-   toggleInputsDisable(false);
-
-   // Очищаем их
-   budgetMonthValElem.value = '';
-   budgetDayValElem.value = '';
-   expensesMonthValElem.value = '';
-   additionalExpensesValElem.value = '';
-   additionalIncomeValElem.value = '';
-   targetMonthValElem.value = '';
-   incomePeriodValElem.value = '';
-
-   salaryAmountElem.value = '';
-
-   incomeItems.forEach(item => {
-      item.querySelector('.income-title').value = '';
-      item.querySelector('.income-amount').value = '';
-   });
-   additionalIncomeElems[0].value = '';
-   additionalIncomeElems[1].value = '';
-
-   expensesItems.forEach(item => {
-      item.querySelector('.expenses-title').value = '';
-      item.querySelector('.expenses-amount').value = '';
-   });
-
-   additionalExpensesItemElem.value = '';
-   targetAmountElem.value = '';
-   depositCheckElem.checked = false;
-
-   // Убираем лишние поля Дополнительных доходов и показываем кнопку "+"
-   incomeItems.forEach((item, index) => {
-      if (index !== 0) {
-         item.remove();
-      }
-   });
-   btnIncomeAddElem.style.display = '';
-
-   // Убираем лишние поля Обязательные расходы и показываем кнопку "+"
-   expensesItems.forEach((item, index) => {
-      if (index !== 0) {
-         item.remove();
-      }
-   });
-   btnExpensesAddElem.style.display = '';
-
-   // Возвращаем appData в исходное состояние
-   this.isIncome = null;
-   this.income = {};
-   this.addIncome = [];
-   this.expenses = {};
-   this.addExpenses = [];
-   this.deposit = false;
-   this.percentDeposit = 0;
-   this.moneyDeposit = 0;
-   this.incomeMonth = 0;
-   this.budget = 0;
-   this.budgetDay = 0;
-   this.budgetMonth = 0;
-   this.expensesMonth = 0;
-   this.incomeStatus = '';
-
-   // Возвращаем на место range
-   periodSelectElem.value = 1;
-   periodAmountTitleElem.textContent = '1';
-
-   // Показываем кнопку Рассчитать
-   btnCalculateElem.style.display = 'block';
-
-   // Убираем кнопку сбросить
-   btnCancelElem.style.display = 'none';
-};
-
-//=========================================================================================
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//=========================================================================================
-
-
-btnCalculateElem.addEventListener('click', event => {
-   if (salaryAmountElem.value === '') {
-      return;
-   }
-   // appData.start(); // Так было, когда start была в appData, я ее оттуда вынес, 
-   // чтобы выполнить требования ДЗ
-
-   // Теперь привязать контекст вызова (т.к. в start везде используется this) можно так
-   const startBound = start.bind(appData);
-   startBound();
-
-   // start.call(appData); // или так
-   // start.apply(appData); // а можно так.
-});
-
-btnCancelElem.addEventListener('click', event => {
-   resetCalc.call(appData);
-});
+btnCancelElem.addEventListener('click', resetBound);
 
 btnExpensesAddElem.addEventListener('click', appData.addExpensesBlock);
 btnIncomeAddElem.addEventListener('click', appData.addIncomeBlock);
@@ -444,8 +402,6 @@ btnIncomeAddElem.addEventListener('click', appData.addIncomeBlock);
 periodSelectElem.addEventListener('input', event => {
    periodAmountTitleElem.textContent = event.target.value;
 });
-
-
 
 salaryAmountElem.addEventListener('input', event => {
    validateNumbers(event.target);
@@ -479,11 +435,6 @@ additionalIncomeElems.forEach(item => {
    });
 });
 
-
-
-
-
-
 // --------- Чтобы каждый раз не заполнять ------------------
 // salaryAmountElem.value = '45000';
 // incomeTitleElem.value = 'Электромонтаж';
@@ -491,5 +442,3 @@ additionalIncomeElems.forEach(item => {
 // additionalIncomeElems[0].value = 'Медь';
 // additionalIncomeElems[1].value = 'Найду деньги';
 // targetAmountElem.value = '450000';
-
-
