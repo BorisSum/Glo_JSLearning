@@ -73,8 +73,9 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             if (target.matches('.close-btn')) { // кликнули по крестику
                closeMenu();
+               return;
             }
-            if (target.closest('ul>li')) { // кликнули по пункту меню
+            if (target.matches('a')) { // кликнули по пункту меню
                event.preventDefault();
                closeMenu();
                const strTraget = target.href.split("#")[1];
@@ -82,7 +83,6 @@ window.addEventListener('DOMContentLoaded', () => {
                destinationView.scrollIntoView({ block: "start", behavior: "smooth" });
             }
          }
-
       });
    };
 
