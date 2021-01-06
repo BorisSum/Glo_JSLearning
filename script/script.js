@@ -40,7 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
       interval = setInterval(updateClock, 1000);
    };
 
-   countTimer('26 december 2020');
+   countTimer('11 january 2021');
 
 
    // ----------------------------------------- Menu -------------------------------------
@@ -387,13 +387,48 @@ window.addEventListener('DOMContentLoaded', () => {
 
    // ------------------- Отправка форм --------------------------------------------------------
 
-   const validatePhone = function () { this.value = this.value.replace(/[^\+\d]/g, ''); };
-   const validateText = function () { this.value = this.value.replace(/[^а-я0-9 \.\,]/gi, ''); };
-   const validateName = function () { this.value = this.value.replace(/[^а-я ]/gi, ''); };
+   function maskPhone(selector, masked = '+7 (___) ___-__-__') {
+      const elems = document.querySelectorAll(selector);
 
-   const errorMessage = 'Что-то пошло не так ...';
-   const loadMessage = 'Загрузка ...';
-   const successMessage = 'Спасибо! Мы скоро с вами свяжемся!';
+      const mask = function (event) {
+         const keyCode = event.keyCode;
+         const template = masked,
+            def = template.replace(/\D/g, ""),
+            val = this.value.replace(/\D/g, "");
+
+         let i = 0,
+            newValue = template.replace(/[_\d]/g, function (a) {
+               return i < val.length ? val.charAt(i++) || def.charAt(i) : a;
+            });
+         i = newValue.indexOf("_");
+         if (i !== -1) {
+            newValue = newValue.slice(0, i);
+         }
+         let reg = template.substr(0, this.value.length).replace(/_+/g,
+            function (a) {
+               return "\\d{1," + a.length + "}";
+            }).replace(/[+()]/g, "\\$&");
+         reg = new RegExp("^" + reg + "$");
+         if (!reg.test(this.value) || this.value.length < 5 || keyCode > 47 && keyCode < 58) {
+            this.value = newValue;
+         }
+         if (event.type === "blur" && this.value.length < 5) {
+            this.value = "";
+         }
+
+      };
+
+      for (const elem of elems) {
+         elem.addEventListener("input", mask);
+         elem.addEventListener("focus", mask);
+         elem.addEventListener("blur", mask);
+      }
+
+   }
+
+   maskPhone('#form1-phone');
+   maskPhone('#form2-phone');
+   maskPhone('#form3-phone');
 
    // --------------------------------------------------------------------------
    const postData = (dataValues, outputData, errorData) => {
@@ -414,139 +449,98 @@ window.addEventListener('DOMContentLoaded', () => {
       request.send(JSON.stringify(dataValues));
    };
 
+   document.addEventListener('submit', event => {
+      event.preventDefault();
+      let target = event.target;
+      let formInputText = null, timeout = 5000;
 
-   // ------------------ Form1 Форма на первой странице ----------------------------------------------------
-   const sendForm1 = () => {
+      if (!(target.matches('#form1') || target.matches('#form2') || target.matches('#form3'))) {
+         return;
+      }
 
-      const form1 = document.getElementById('form1');
-      const form1InputName = document.getElementById('form1-name');
-      const form1InputEmail = document.getElementById('form1-email');
-      const form1InputPhone = document.getElementById('form1-phone');
-      const statusMessage = document.createElement('div');
+      if (target.matches('#form2')) {
+         formInputText = document.getElementById('form2-message');
+      }
 
-      form1InputName.addEventListener('input', validateName);
-      form1InputPhone.addEventListener('input', validatePhone);
+      if (target.matches('#form3')) {
+         timeout = 1000;
+      }
 
+      const formInputName = document.getElementById(`${target.id}-name`);
+      const formInputEmail = document.getElementById(`${target.id}-email`);
+      const formInputPhone = document.getElementById(`${target.id}-phone`);
 
-      form1.addEventListener('submit', event => {
-         event.preventDefault();
-         form1.append(statusMessage);
-         statusMessage.textContent = loadMessage;
+      let statusMessage = target.querySelector('.js-status-message');
 
-         let form1DataValues = {};
-         const form1Data = new FormData(form1);
+      if (!statusMessage) {
+         statusMessage = document.createElement('div');
+         statusMessage.classList.add('js-status-message');
+         statusMessage.style.cssText = `color:white; font-size:12px;`;
+         target.append(statusMessage);
+      }
 
-         form1Data.forEach((item, index) => {
-            form1DataValues[index] = item;
-         });
+      const errorMessage = 'Что-то пошло не так ...';
+      const loadMessage = 'Загрузка ...';
+      const successMessage = 'Спасибо! Мы скоро с вами свяжемся!';
 
-         postData(form1DataValues,
-            () => {
-               statusMessage.textContent = successMessage;
-            },
-            (error) => {
-               statusMessage.textContent = errorMessage;
-               console.error(error);
-            }
-         );
+      // Валидация полей
+      // Имя
+      if (formInputName.value.length < 2) {
+         statusMessage.style.color = '#FFA6AE';
+         statusMessage.textContent = 'Имя не может быть короче двух символов!';
+         return;
+      }
 
-         // очистка инпутов
-         form1InputName.value = '';
-         form1InputEmail.value = '';
-         form1InputPhone.value = '';
+      // Почта
+      if (formInputEmail.value.length === 0 ||
+         !(/.+@.+\..+/i.test(formInputEmail.value))) {
+         statusMessage.style.color = '#FFA6AE';
+         statusMessage.textContent = 'Поле "E-mail" заполнено некорректно!';
+         return;
+      }
 
+      // Сообщение
+      if (target.matches('#form2')) {
+         if (formInputText.value.length === 0) {
+            statusMessage.style.color = '#FFA6AE';
+            statusMessage.textContent = 'Поле "Сообщение" не заполнено!';
+            return;
+         }
+      }
+
+      let formDataValues = {};
+      statusMessage.style.color = 'white';
+      statusMessage.textContent = loadMessage;
+
+      const formData = new FormData(target);
+      formData.forEach((item, index) => {
+         formDataValues[index] = item;
       });
-   };
-   sendForm1();
 
-   // ------------------ Form2 Форма в конце сайта -------------------------------
+      postData(formDataValues,
+         () => {
+            statusMessage.textContent = successMessage;
+            setTimeout(() => {
+               statusMessage.textContent = '';
+               statusMessage.remove();
+               if (target.matches('#form3')) {
+                  document.querySelector('.popup').style.display = 'none';
+               }
+            }, timeout);
+         },
+         (error) => {
+            statusMessage.textContent = `${errorMessage} (${error})`;
+         }
+      );
 
-   const sendForm2 = () => {
-      const form2 = document.getElementById('form2');
-      const form2InputName = document.getElementById('form2-name');
-      const form2InputEmail = document.getElementById('form2-email');
-      const form2InputPhone = document.getElementById('form2-phone');
-      const form2InputMessage = document.getElementById('form2-message');
+      // очистка инпутов
+      formInputName.value = '';
+      formInputEmail.value = '';
+      formInputPhone.value = '';
+      if (formInputText) {
+         formInputText.value = '';
+      }
 
-      form2InputName.addEventListener('input', validateName);
-      form2InputPhone.addEventListener('input', validatePhone);
-      form2InputMessage.addEventListener('input', validateText);
-
-      const statusMessage = document.createElement('div');
-      statusMessage.style.cssText = `margin-top:15px;`;
-
-      form2.addEventListener('submit', event => {
-         event.preventDefault();
-         form2.append(statusMessage);
-         statusMessage.textContent = loadMessage;
-
-         let form2DataValues = {};
-         const form2Data = new FormData(form2);
-
-         form2Data.forEach((item, index) => {
-            form2DataValues[index] = item;
-         });
-
-         postData(form2DataValues,
-            () => {
-               statusMessage.textContent = successMessage;
-            }, (error) => {
-               statusMessage.textContent = errorMessage;
-               console.error(error);
-            }
-         );
-
-         // очистка инпутов
-         form2InputName.value = '';
-         form2InputEmail.value = '';
-         form2InputPhone.value = '';
-         form2InputMessage.value = '';
-
-      });
-   };
-
-   sendForm2();
-
-   // ------------------ Form3 Форма из popup меню -------------------------------
-
-   const sendForm3 = () => {
-      const form3 = document.getElementById('form3');
-      const popupMenu = document.querySelector('.popup');
-      const form3InputName = document.getElementById('form3-name');
-      const form3InputEmail = document.getElementById('form3-email');
-      const form3InputPhone = document.getElementById('form3-phone');
-
-      form3InputName.addEventListener('input', validateName);
-      form3InputPhone.addEventListener('input', validatePhone);
-
-      form3.addEventListener('submit', event => {
-         event.preventDefault();
-
-         let form3DataValues = {};
-         const form3Data = new FormData(form3);
-
-         form3Data.forEach((item, index) => {
-            form3DataValues[index] = item;
-         });
-
-         postData(form3DataValues,
-            () => {
-               alert(successMessage);
-            },
-            (error) => {
-               alert(errorMessage);
-               console.error(error);
-            }
-         );
-         // очистка инпутов
-         form3InputName.value = '';
-         form3InputEmail.value = '';
-         form3InputPhone.value = '';
-         // Закрыть модальное оконо
-         popupMenu.style.display = 'none';
-      });
-   };
-
-   sendForm3();
+   });
 
 }); // Закрывашка DOMContentLoaded
