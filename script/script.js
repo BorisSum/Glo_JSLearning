@@ -431,22 +431,43 @@ window.addEventListener('DOMContentLoaded', () => {
    maskPhone('#form3-phone');
 
    // --------------------------------------------------------------------------
-   const postData = (dataValues, outputData, errorData) => {
-      const request = new XMLHttpRequest();
-      request.addEventListener('readystatechange', () => {
-         if (request.readyState !== 4) {
-            return;
-         }
-         if (request.status === 200) {
-            outputData();
-         } else {
-            errorData(request.status);
-         }
+   // const postData = (dataValues, outputData, errorData) => {
+   //    const request = new XMLHttpRequest();
+   //    request.addEventListener('readystatechange', () => {
+   //       if (request.readyState !== 4) {
+   //          return;
+   //       }
+   //       if (request.status === 200) {
+   //          outputData();
+   //       } else {
+   //          errorData(request.status);
+   //       }
+   //    });
+
+   //    request.open('POST', './server.php');
+   //    request.setRequestHeader('Content-Type', 'application/json');
+   //    request.send(JSON.stringify(dataValues));
+   // };
+
+   const postData = (dataValues) => {
+      return new Promise((resolve, reject) => {
+         const request = new XMLHttpRequest();
+         request.addEventListener('readystatechange', () => {
+            if (request.readyState !== 4) {
+               return;
+            }
+            if (request.status === 200) {
+               resolve();
+            } else {
+               reject(request.statusText);
+            }
+         });
+
+         request.open('POST', './server.php');
+         request.setRequestHeader('Content-Type', 'application/json');
+         request.send(JSON.stringify(dataValues));
       });
 
-      request.open('POST', './server.php');
-      request.setRequestHeader('Content-Type', 'application/json');
-      request.send(JSON.stringify(dataValues));
    };
 
    document.addEventListener('submit', event => {
@@ -517,8 +538,24 @@ window.addEventListener('DOMContentLoaded', () => {
          formDataValues[index] = item;
       });
 
-      postData(formDataValues,
-         () => {
+      // postData(formDataValues,
+      //    () => {
+      //       statusMessage.textContent = successMessage;
+      //       setTimeout(() => {
+      //          statusMessage.textContent = '';
+      //          statusMessage.remove();
+      //          if (target.matches('#form3')) {
+      //             document.querySelector('.popup').style.display = 'none';
+      //          }
+      //       }, timeout);
+      //    },
+      //    (error) => {
+      //       statusMessage.textContent = `${errorMessage} (${error})`;
+      //    }
+      // );
+
+      postData(formDataValues)
+         .then(() => {
             statusMessage.textContent = successMessage;
             setTimeout(() => {
                statusMessage.textContent = '';
@@ -527,11 +564,8 @@ window.addEventListener('DOMContentLoaded', () => {
                   document.querySelector('.popup').style.display = 'none';
                }
             }, timeout);
-         },
-         (error) => {
-            statusMessage.textContent = `${errorMessage} (${error})`;
-         }
-      );
+         })
+         .catch(error => statusMessage.textContent = `${errorMessage} (${error})`);
 
       // очистка инпутов
       formInputName.value = '';
