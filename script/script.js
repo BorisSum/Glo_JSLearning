@@ -431,43 +431,14 @@ window.addEventListener('DOMContentLoaded', () => {
    maskPhone('#form3-phone');
 
    // --------------------------------------------------------------------------
-   // const postData = (dataValues, outputData, errorData) => {
-   //    const request = new XMLHttpRequest();
-   //    request.addEventListener('readystatechange', () => {
-   //       if (request.readyState !== 4) {
-   //          return;
-   //       }
-   //       if (request.status === 200) {
-   //          outputData();
-   //       } else {
-   //          errorData(request.status);
-   //       }
-   //    });
-
-   //    request.open('POST', './server.php');
-   //    request.setRequestHeader('Content-Type', 'application/json');
-   //    request.send(JSON.stringify(dataValues));
-   // };
+   const errTextColor = '#FFA6AE';
 
    const postData = (dataValues) => {
-      return new Promise((resolve, reject) => {
-         const request = new XMLHttpRequest();
-         request.addEventListener('readystatechange', () => {
-            if (request.readyState !== 4) {
-               return;
-            }
-            if (request.status === 200) {
-               resolve();
-            } else {
-               reject(request.statusText);
-            }
-         });
-
-         request.open('POST', './server.php');
-         request.setRequestHeader('Content-Type', 'application/json');
-         request.send(JSON.stringify(dataValues));
+      return fetch('./server.php', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify(dataValues),
       });
-
    };
 
    document.addEventListener('submit', event => {
@@ -506,25 +477,26 @@ window.addEventListener('DOMContentLoaded', () => {
 
       // Валидация полей
       // Имя
-      if (formInputName.value.length < 2) {
-         statusMessage.style.color = '#FFA6AE';
-         statusMessage.textContent = 'Имя не может быть короче двух символов!';
+
+      if (!(/^[а-я ]{2,}$/i.test(formInputName.value))) {
+         statusMessage.style.color = errTextColor;
+         statusMessage.textContent = 'Имя должно содержать только кирилицу, пробелы и быть не короче двух символов!';
          return;
       }
 
       // Почта
       if (formInputEmail.value.length === 0 ||
          !(/.+@.+\..+/i.test(formInputEmail.value))) {
-         statusMessage.style.color = '#FFA6AE';
+         statusMessage.style.color = errTextColor;
          statusMessage.textContent = 'Поле "E-mail" заполнено некорректно!';
          return;
       }
 
       // Сообщение
       if (target.matches('#form2')) {
-         if (formInputText.value.length === 0) {
-            statusMessage.style.color = '#FFA6AE';
-            statusMessage.textContent = 'Поле "Сообщение" не заполнено!';
+         if (!(/^[а-я0-9 \.,:;\-\(\)\!\?]{1,}$/i.test(formInputText.value))) {
+            statusMessage.style.color = errTextColor;
+            statusMessage.textContent = 'Поле "Сообщение" может содержать только кирилицу, цифры и знаки препинания';
             return;
          }
       }
@@ -538,24 +510,11 @@ window.addEventListener('DOMContentLoaded', () => {
          formDataValues[index] = item;
       });
 
-      // postData(formDataValues,
-      //    () => {
-      //       statusMessage.textContent = successMessage;
-      //       setTimeout(() => {
-      //          statusMessage.textContent = '';
-      //          statusMessage.remove();
-      //          if (target.matches('#form3')) {
-      //             document.querySelector('.popup').style.display = 'none';
-      //          }
-      //       }, timeout);
-      //    },
-      //    (error) => {
-      //       statusMessage.textContent = `${errorMessage} (${error})`;
-      //    }
-      // );
-
       postData(formDataValues)
-         .then(() => {
+         .then((response) => {
+            if (response.status !== 200) {
+               throw new Error('Netwok status is not equal 200');
+            }
             statusMessage.textContent = successMessage;
             setTimeout(() => {
                statusMessage.textContent = '';
@@ -565,7 +524,10 @@ window.addEventListener('DOMContentLoaded', () => {
                }
             }, timeout);
          })
-         .catch(error => statusMessage.textContent = `${errorMessage} (${error})`);
+         .catch(error => {
+            statusMessage.style.color = errTextColor;
+            statusMessage.textContent = `${errorMessage} (${error})`;
+         });
 
       // очистка инпутов
       formInputName.value = '';
